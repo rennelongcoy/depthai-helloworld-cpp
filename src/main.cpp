@@ -16,35 +16,40 @@ int main(){
     // Define ColorCamera Node
     auto cam_rgb = pipeline.create<dai::node::ColorCamera>();
     cam_rgb->setPreviewSize(300, 300); // to match the mobilenet-ssd input size
-    cam_rgb->setInterleaved(true);
+    cam_rgb->setInterleaved(false);
+
+    // Define NeuralNetwork Node
+    auto detection_nn = pipeline.create<dai::node::NeuralNetwork>();
+    //detection_nn->setBlobPath("/home/eli/apps/depthai-helloworld-cpp/model/mobilenet-ssd.blob");
+    detection_nn->setBlobPath("/home/eli/apps/depthai-helloworld-cpp/model/mobilenet-ssd_openvino_2021.2_6shave.blob");
+
+    // For inference, connect the ColorCamera output to the NeuralNetwork input
+    cam_rgb->preview.link(detection_nn->input);
 
     // Create XLinkOut Nodes to receive outputs from OAK
     // Receive color camera frames from the ColorCamera Node
     auto xout_rgb = pipeline.create<dai::node::XLinkOut>();
     xout_rgb->setStreamName("rgb");
     cam_rgb->preview.link(xout_rgb->input);
-    // Create pipeline
-    /*dai::Pipeline pipeline;
-    std::shared_ptr<dai::node::ColorCamera> colorCam = pipeline.create<dai::node::ColorCamera>();
-    std::shared_ptr<dai::node::XLinkOut> xlinkOut = pipeline.create<dai::node::XLinkOut>();
-    xlinkOut->setStreamName("preview");
-    colorCam->setInterleaved(true);
-    colorCam->preview.link(xlinkOut->input);
-    //colorCam->setPreviewSize(1280, 720);
-    //colorCam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-*/
+
+    // Receive neural network inference results from the NeuralNetwork Node
+    auto xout_nn = pipeline.create<dai::node::XLinkOut>();
+    xout_nn->setStreamName("nn");
+    detection_nn->out.link(xout_nn->input);
+
     try {
         // Try connecting to device
         dai::Device device(pipeline);
 
         // Get output queues
         auto q_rgb = device.getOutputQueue("rgb");
+        auto q_nn = device.getOutputQueue("nn");
 
         // Start pipeline
         device.startPipeline();
 
         // Variables to store Node outputs
-        //cv::Mat frame;
+        cv::Mat frame;
         struct Detection {
             unsigned int label;
             float score;
@@ -57,14 +62,16 @@ int main(){
         while (true) {
             // Receive 'preview' frame from device 
             std::shared_ptr<dai::ImgFrame> in_rgb = q_rgb->get<dai::ImgFrame>();
+            auto in_nn = q_nn->get<dai::NNData>();
 
             // Show the received 'preview' frame
-            /*if (in_rgb) {
-                printf("Frame - w: %d, h: %d\n", in_rgb->getWidth(), in_rgb->getHeight());
+            if (in_rgb) {
+                //printf("Frame - w: %d, h: %d\n", in_rgb->getWidth(), in_rgb->getHeight());
                 // Convert to cv::Mat data type
                 frame = toMat(in_rgb->getData(), in_rgb->getWidth(), in_rgb->getHeight(), 3, 1);
-            }*/
-            cv::Mat frame(in_rgb->getHeight(), in_rgb->getWidth(), CV_8UC3, in_rgb->getData().data());
+                //frame = cv::Mat(in_rgb->getHeight(), in_rgb->getWidth(), CV_8UC3, in_rgb->getData().data());
+            }
+            
             cv::imshow("preview", frame);
 
             // Wait and check if 'q' pressed
