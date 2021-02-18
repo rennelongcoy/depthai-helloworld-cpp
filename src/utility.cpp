@@ -1,5 +1,5 @@
 #include "utility.hpp"
-#include <iostream>
+
 // libraries
 #include "fp16/fp16.h"
 
@@ -13,7 +13,6 @@ cv::Mat toMat(const std::vector<uint8_t>& data, int w, int h , int numPlanes, in
         // optimization (cache)
         for(int i = 0; i < w*h; i++) {
             uint8_t b = data.data()[i + w*h * 0];
-                        std::cout << "toMat 2" << std::endl;
             frame.data[i*3+0] = b;
         }
         for(int i = 0; i < w*h; i++) {                

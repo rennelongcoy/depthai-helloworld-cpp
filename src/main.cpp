@@ -3,6 +3,9 @@
 // include depthai library
 #include <depthai/depthai.hpp>
 
+// include depthai-utility
+#include "utility.hpp"
+
 // include opencv library (Optional, used only for the following example)
 #include <opencv2/opencv.hpp>
 
@@ -41,7 +44,7 @@ int main(){
         device.startPipeline();
 
         // Variables to store Node outputs
-        cv::Mat frame;
+        //cv::Mat frame;
         struct Detection {
             unsigned int label;
             float score;
@@ -56,6 +59,11 @@ int main(){
             std::shared_ptr<dai::ImgFrame> in_rgb = q_rgb->get<dai::ImgFrame>();
 
             // Show the received 'preview' frame
+            /*if (in_rgb) {
+                printf("Frame - w: %d, h: %d\n", in_rgb->getWidth(), in_rgb->getHeight());
+                // Convert to cv::Mat data type
+                frame = toMat(in_rgb->getData(), in_rgb->getWidth(), in_rgb->getHeight(), 3, 1);
+            }*/
             cv::Mat frame(in_rgb->getHeight(), in_rgb->getWidth(), CV_8UC3, in_rgb->getData().data());
             cv::imshow("preview", frame);
 
