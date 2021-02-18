@@ -21,7 +21,7 @@ int main(){
     // Define NeuralNetwork Node
     std::shared_ptr<dai::node::NeuralNetwork> detection_nn = pipeline.create<dai::node::NeuralNetwork>();
     // https://github.com/luxonis/depthai-tutorials/blob/master/1-hello-world/mobilenet-ssd/mobilenet-ssd.blob
-    detection_nn->setBlobPath("/home/eli/apps/depthai-helloworld-cpp/model/mobilenet-ssd.blob");
+    detection_nn->setBlobPath("/home/eli/apps/depthai-helloworld-cpp/mobilenet-ssd/mobilenet-ssd.blob");
 
     // For inference, connect the ColorCamera output to the NeuralNetwork input
     cam_rgb->preview.link(detection_nn->input);
